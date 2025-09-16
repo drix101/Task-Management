@@ -1,69 +1,69 @@
-# React + TypeScript + Vite
+# Task Manager (React + TypeScript + Tailwind + Zustand)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple, modern **web-based task manager** built with React, TypeScript, TailwindCSS, and Zustand. It allows you to add, edit, complete, filter, and sort tasks — with persistent storage in the browser via `localStorage`.
 
-Currently, two official plugins are available:
+🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ✅ Add, edit, delete tasks
+- ✅ Mark tasks as complete/incomplete
+- ✅ Optional notes, due dates, and priority levels
+- ✅ Filter by **All / Active / Completed**
+- ✅ Search and sort tasks (Newest, Oldest, Due soon)
+- ✅ Persistent storage with Zustand + localStorage
+- ✅ Responsive Tailwind UI
 
-## Expanding the ESLint configuration
+🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React 18+** (UI library)
+- **TypeScript** (type safety)
+- **TailwindCSS** (styling)
+- **Zustand** (state management)
+- **Vite** (fast dev server & bundler)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 📂 Project Structure
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+src/
+├── components/
+│   ├── TaskForm.tsx       # Form for creating tasks
+│   ├── TaskItem.tsx       # Individual task row
+│   ├── TaskList.tsx       # List of tasks
+│   └── Toolbar.tsx        # Filters, search, and controls
+├── store/
+│   └── taskStore.ts       # Zustand store for tasks
+├── types/
+│   └── task.ts            # Type definitions
+├── utils/
+│   └── helpers.ts         # Utility functions
+├── TaskManagerApp.tsx     # Main task manager UI
+├── App.tsx                # App wrapper
+└── main.tsx               # Entry point
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Getting Started
+
+1️ Clone the repo
+bash
+git clone https://github.com/your-username/task-manager.git
+cd task-manager
+
+
+2️ Install dependencies
+bash
+npm install
+
+3️ Run the dev server
+bash
+npm run dev
+
+Open your browser at 
+
+🔧 Available Scripts
+
+`npm run dev` – Start dev server
+- `npm run build` – Build for production
+- `npm run preview` – Preview production build
+
+📜 License
+MIT License © 2025 — Built using React, TypeScript, Tailwind, and Zustand.
