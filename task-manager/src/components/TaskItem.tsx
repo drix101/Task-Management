@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Task } from "../types/task";
-import { formatDate } from "../utils/helpers";
+import type { Task } from "../types/task";
 
 type Props = {
   task: Task;

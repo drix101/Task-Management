@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Task } from "../types/task";
+import type { Task } from "../types/task";
 import { makeId } from "../utils/helpers";
 import useTaskStore from "../store/taskStore";
 

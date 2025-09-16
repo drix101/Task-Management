@@ -3,7 +3,7 @@ import useTaskStore from "./store/taskStore";
 import TaskForm from "./components/TaskForm";
 import Toolbar from "./components/Toolbar";
 import TaskList from "./components/TaskList";
-import NotificationSettings, { NotificationSettings as NotificationSettingsType } from "./components/NotificationSettings";
+import NotificationSettings, { type NotificationSettings as NotificationSettingsType } from "./components/NotificationSettings";
 import { useTaskNotifications } from "./hooks/useTaskNotifications";
 
 const TaskManagerApp: React.FC = () => {
@@ -40,7 +40,7 @@ const TaskManagerApp: React.FC = () => {
         </main>
 
         <footer className="mt-6 text-center text-xs sm:text-sm text-gray-500">
-          Built with &hearts; &mdash; export or extend as you like.
+          Built with React & Typescript &mdash; Task Manager &copy; {new Date().getFullYear()}
         </footer>
       </div>
     </div>

@@ -1,41 +1,43 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Task, TaskFilter, TaskSort } from "../types/task";
+import type { Task, TaskFilter, TaskSort } from "../types/task";
 
-interface TaskState {
+interface TaskStore {
   tasks: Task[];
   filter: TaskFilter;
   query: string;
   sortBy: TaskSort;
   addTask: (task: Task) => void;
-  updateTask: (id: string, patch: Partial<Task>) => void;
   removeTask: (id: string) => void;
-  setFilter: (f: TaskFilter) => void;
-  setQuery: (q: string) => void;
-  setSortBy: (s: TaskSort) => void;
-  clearCompleted: () => void;
   toggleComplete: (id: string) => void;
+  updateTask: (id: string, patch: Partial<Task>) => void;
+  setFilter: (filter: TaskFilter) => void;
+  setQuery: (query: string) => void;
+  setSortBy: (sortBy: TaskSort) => void;
+  clearCompleted: () => void;
 }
 
-const useTaskStore = create<TaskState>()(
+const useTaskStore = create<TaskStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       tasks: [],
       filter: "all",
       query: "",
       sortBy: "createdDesc",
-      addTask: (task) => set((state) => ({ tasks: [task, ...state.tasks] })),
-      updateTask: (id, patch) =>
-        set((state) => ({ tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
+      addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
       removeTask: (id) => set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) })),
-      setFilter: (f) => set({ filter: f }),
-      setQuery: (q) => set({ query: q }),
-      setSortBy: (s) => set({ sortBy: s }),
-      clearCompleted: () => set((s) => ({ tasks: s.tasks.filter((t) => !t.completed) })),
-      toggleComplete: (id) =>
-        set((state) => ({ tasks: state.tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)) })),
+      toggleComplete: (id) => set((state) => ({
+        tasks: state.tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+      })),
+      updateTask: (id, patch) => set((state) => ({
+        tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t))
+      })),
+      setFilter: (filter) => set({ filter }),
+      setQuery: (query) => set({ query }),
+      setSortBy: (sortBy) => set({ sortBy }),
+      clearCompleted: () => set((state) => ({ tasks: state.tasks.filter((t) => !t.completed) })),
     }),
-    { name: "task-manager-storage" }
+    { name: "task-store" }
   )
 );
 
