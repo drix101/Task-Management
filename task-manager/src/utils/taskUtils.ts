@@ -1,4 +1,4 @@
-import { Task, TaskFilter, TaskSortBy, SortOrder } from '../types/task';
+import type { Task, TaskFilter, TaskSort, Priority } from '../types/task';
 
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -6,63 +6,52 @@ export const generateId = (): string => {
 
 export const createTask = (
   title: string,
-  description?: string,
-  priority: 'low' | 'medium' | 'high' = 'medium',
-  dueDate?: Date,
-  category?: string
+  notes?: string,
+  priority: Priority = 'medium',
+  due?: number | null
 ): Task => {
-  const now = new Date();
   return {
     id: generateId(),
     title,
-    description,
+    notes: notes?.trim() || '',
     completed: false,
-    priority, 
-    dueDate,
-    createdAt: now,
-    updatedAt: now,
-    category,
+    priority,
+    createdAt: Date.now(),
+    due: due ?? null,
   };
 };
 
+// Filters by union TaskFilter: "all" | "active" | "completed"
 export const filterTasks = (tasks: Task[], filter: TaskFilter): Task[] => {
-  return tasks.filter(task => {
-    if (filter.status === 'completed' && !task.completed) return false;
-    if (filter.status === 'pending' && task.completed) return false;
-    if (filter.priority && task.priority !== filter.priority) return false;
-    if (filter.category && task.category !== filter.category) return false;
-    return true;
-  });
+  switch (filter) {
+    case 'active':
+      return tasks.filter(t => !t.completed);
+    case 'completed':
+      return tasks.filter(t => t.completed);
+    case 'all':
+    default:
+      return tasks;
+  }
 };
 
-export const sortTasks = (tasks: Task[], sortBy: TaskSortBy, order: SortOrder): Task[] => {
-  return [...tasks].sort((a, b) => {
-    let comparison = 0;
-    
-    switch (sortBy) {
-      case 'title':
-        comparison = a.title.localeCompare(b.title);
-        break;
-      case 'createdAt':
-        comparison = a.createdAt.getTime() - b.createdAt.getTime();
-        break;
-      case 'dueDate':
-        if (!a.dueDate && !b.dueDate) comparison = 0;
-        else if (!a.dueDate) comparison = 1;
-        else if (!b.dueDate) comparison = -1;
-        else comparison = a.dueDate.getTime() - b.dueDate.getTime();
-        break;
-      case 'priority':
-        const priorityOrder = { low: 1, medium: 2, high: 3 };
-        comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
-        break;
-    }
-    
-    return order === 'asc' ? comparison : -comparison;
-  });
+// Sorts using TaskSort: "createdDesc" | "createdAsc" | "dueSoon"
+export const sortTasks = (tasks: Task[], sortBy: TaskSort): Task[] => {
+  const out = [...tasks];
+  switch (sortBy) {
+    case 'createdDesc':
+      out.sort((a, b) => b.createdAt - a.createdAt);
+      break;
+    case 'createdAsc':
+      out.sort((a, b) => a.createdAt - b.createdAt);
+      break;
+    case 'dueSoon':
+      out.sort((a, b) => (a.due ?? Number.POSITIVE_INFINITY) - (b.due ?? Number.POSITIVE_INFINITY));
+      break;
+  }
+  return out;
 };
 
-export const getPriorityColor = (priority: 'low' | 'medium' | 'high'): string => {
+export const getPriorityColor = (priority: Priority): string => {
   switch (priority) {
     case 'high':
       return 'text-red-600 bg-red-100';
@@ -73,8 +62,10 @@ export const getPriorityColor = (priority: 'low' | 'medium' | 'high'): string =>
   }
 };
 
-export const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
+// Accepts a Date or a timestamp (number)
+export const formatDate = (date: Date | number): string => {
+  const d = typeof date === 'number' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
