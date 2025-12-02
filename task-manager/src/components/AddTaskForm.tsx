@@ -3,43 +3,42 @@ import React, { useState } from 'react';
 interface AddTaskFormProps {
   onAddTask: (
     title: string, 
-    description?: string,
+    notes?: string,
     priority?: 'low' | 'medium' | 'high',
-    dueDate?: Date,
-    category?: string
+    due?: number | null,
   ) => void;
   onCancel: () => void;
 }
 
 const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [notes, setNotes] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [dueDate, setDueDate] = useState('');
-  const [category, setCategory] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    const dueTimestamp = dueDate ? new Date(`${dueDate}T23:59:59`).getTime() : null;
+
     onAddTask(
       title.trim(),
-      description.trim() || undefined,
+      notes.trim() || undefined,
       priority,
-      dueDate ? new Date(dueDate) : undefined,
-      category.trim() || undefined
+      dueTimestamp
     );
 
     // Reset form
     setTitle('');
-    setDescription('');
+    setNotes('');
     setPriority('medium');
     setDueDate('');
-    setCategory('');
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Title */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
           Task Title *
@@ -55,21 +54,23 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
         />
       </div>
 
+      {/* Notes */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          Notes
         </label>
         <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Enter task description..."
+          placeholder="Optional notes..."
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Priority */}
         <div>
           <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
             Priority
@@ -86,6 +87,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
           </select>
         </div>
 
+        {/* Due Date */}
         <div>
           <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">
             Due Date
@@ -96,20 +98,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <input
-            type="text"
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="e.g., Work, Personal..."
           />
         </div>
       </div>

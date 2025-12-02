@@ -62,7 +62,6 @@ export const getPriorityColor = (priority: Priority): string => {
   }
 };
 
-// Accepts a Date or a timestamp (number)
 export const formatDate = (date: Date | number): string => {
   const d = typeof date === 'number' ? new Date(date) : date;
   return d.toLocaleDateString('en-US', {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Task, TaskFilter, TaskSortBy, SortOrder } from '../types/task';
+import type { Task, TaskFilter, TaskSort } from '../types/task';
 import { createTask, filterTasks, sortTasks } from '../utils/taskUtils';
 import TaskList from './TaskList';
 import AddTaskForm from './AddTaskForm';
@@ -7,38 +7,37 @@ import TaskFilters from './TaskFilters';
 
 const TaskManager: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [filter, setFilter] = useState<TaskFilter>({ status: 'all' });
-  const [sortBy, setSortBy] = useState<TaskSortBy>('createdAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [filter, setFilter] = useState<TaskFilter>('all');
+  const [sortBy, setSortBy] = useState<TaskSort>('createdDesc');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Load tasks from localStorage on component mount
   useEffect(() => {
     const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) { 
-      const parsedTasks = JSON.parse(savedTasks).map((task: any) => ({
-        ...task,
-        createdAt: new Date(task.createdAt),
-        updatedAt: new Date(task.updatedAt),
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+    if (savedTasks) {
+      const parsedTasks: Task[] = JSON.parse(savedTasks).map((task: any) => ({
+        id: String(task.id),
+        title: String(task.title),
+        notes: task.notes ? String(task.notes) : '',
+        completed: Boolean(task.completed),
+        priority: task.priority === 'high' || task.priority === 'low' ? task.priority : 'medium',
+        createdAt: typeof task.createdAt === 'number' ? task.createdAt : Date.now(),
+        due: task.due != null ? Number(task.due) : null,
       }));
       setTasks(parsedTasks);
     }
   }, []);
 
-  // Save tasks to localStorage whenever tasks change
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
   const addTask = (
     title: string,
-    description?: string,
+    notes?: string,
     priority: 'low' | 'medium' | 'high' = 'medium',
-    dueDate?: Date,
-    category?: string
+    due?: number | null
   ) => {
-    const newTask = createTask(title, description, priority, dueDate, category);
+    const newTask = createTask(title, notes, priority, due ?? null);
     setTasks(prev => [newTask, ...prev]);
     setShowAddForm(false);
   };
@@ -47,7 +46,7 @@ const TaskManager: React.FC = () => {
     setTasks(prev =>
       prev.map(task =>
         task.id === id
-          ? { ...task, ...updates, updatedAt: new Date() }
+          ? { ...task, ...updates }
           : task
       )
     );
@@ -58,21 +57,17 @@ const TaskManager: React.FC = () => {
   };
 
   const toggleTaskComplete = (id: string) => {
-    updateTask(id, { completed: !tasks.find(t => t.id === id)?.completed });
+    setTasks(prev =>
+      prev.map(t => (t.id === id ? { ...t, completed: !t.completed } : t))
+    );
   };
 
   const clearCompleted = () => {
     setTasks(prev => prev.filter(task => !task.completed));
   };
 
-  // Get filtered and sorted tasks
   const filteredTasks = filterTasks(tasks, filter);
-  const sortedTasks = sortTasks(filteredTasks, sortBy, sortOrder);
-
-  // Statistics
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.completed).length;
-  const pendingTasks = totalTasks - completedTasks;
+  const sortedTasks = sortTasks(filteredTasks, sortBy);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -86,15 +81,15 @@ const TaskManager: React.FC = () => {
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600">{totalTasks}</div>
+            <div className="text-3xl font-bold text-blue-600">{sortedTasks.length}</div>
             <div className="text-gray-600">Total Tasks</div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="text-3xl font-bold text-green-600">{completedTasks}</div>
+            <div className="text-3xl font-bold text-green-600">{sortedTasks.filter(t => t.completed).length}</div>
             <div className="text-gray-600">Completed</div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="text-3xl font-bold text-orange-600">{pendingTasks}</div>
+            <div className="text-3xl font-bold text-orange-600">{sortedTasks.filter(t => !t.completed).length}</div>
             <div className="text-gray-600">Pending</div>
           </div>
         </div>
@@ -110,7 +105,7 @@ const TaskManager: React.FC = () => {
             </button>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              {completedTasks > 0 && (
+              {sortedTasks.filter(t => t.completed).length > 0 && (
                 <button
                   onClick={clearCompleted}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
@@ -136,20 +131,12 @@ const TaskManager: React.FC = () => {
             onFilterChange={setFilter}
             sortBy={sortBy}
             onSortByChange={setSortBy}
-            sortOrder={sortOrder}
-            onSortOrderChange={setSortOrder}
-            tasks={tasks}
           />
         </div>
 
         {/* Task List */}
         <div className="bg-white rounded-lg shadow">
-          <TaskList
-            tasks={sortedTasks}
-            onToggleComplete={toggleTaskComplete}
-            onUpdateTask={updateTask}
-            onDeleteTask={deleteTask}
-          />
+          <TaskList />
         </div>
 
         {/* Empty State */}

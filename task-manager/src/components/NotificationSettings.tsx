@@ -127,13 +127,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
         </div>
         <button
           onClick={handleToggleNotifications}
-          className={`relative inline-flex h-7 w-15 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-4 ${
+          className={`relative inline-flex h-6 w-15 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0 ${
             settings.enabled ? 'bg-blue-600' : 'bg-gray-300'
           }`}
           aria-label={settings.enabled ? "Disable notifications" : "Enable notifications"}
         >
           <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
+            className={`h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
               settings.enabled ? 'translate-x-6' : 'translate-x-0'
             }`}
           />
@@ -144,23 +144,35 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
         <div className="space-y-4 border-t pt-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notify me:
+              Notify before due time:
             </label>
-            <select
-              value={settings.notifyBefore}
-              onChange={(e) => updateSettings({ ...settings, notifyBefore: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-100 text-base"
-              disabled={!settings.enabled}
-            >
-              <option value={0}>At due time</option>
-              <option value={5}>5 minutes before</option>
-              <option value={10}>10 minutes before</option>
-              <option value={15}>15 minutes before</option>
-              <option value={30}>30 minutes before</option>
-              <option value={60}>1 hour before</option>
-            </select>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">
+                {notifyBeforeEnabled ? `${settings.notifyBefore} minutes before` : 'At due time'}
+              </span>
+              <button
+                onClick={toggleNotifyBefore}
+                className={`relative inline-flex h-7 w-15 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  !settings.enabled
+                    ? 'bg-gray-200 cursor-not-allowed'
+                    : notifyBeforeEnabled
+                    ? 'bg-blue-600'
+                    : 'bg-gray-200'
+                }`}
+                aria-label={notifyBeforeEnabled ? 'Turn off pre-notifications' : 'Turn on pre-notifications'}
+                aria-pressed={notifyBeforeEnabled}
+                disabled={!settings.enabled}
+              >
+                <span
+                  className={`h-5 w-5 rounded-full bg-white transition-transform duration-300 mx-1 ${
+                    notifyBeforeEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
+          {/* Check interval select remains */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Check for due tasks every:
