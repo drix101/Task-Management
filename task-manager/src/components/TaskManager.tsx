@@ -136,7 +136,12 @@ const TaskManager: React.FC = () => {
 
         {/* Task List */}
         <div className="bg-white rounded-lg shadow">
-          <TaskList />
+          <TaskList
+            tasks={sortedTasks}
+            onToggleComplete={toggleTaskComplete}
+            onUpdateTask={updateTask}
+            onDeleteTask={deleteTask}
+          />
         </div>
 
         {/* Empty State */}

@@ -1,15 +1,27 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import TaskForm from "./components/TaskForm";
 import Toolbar from "./components/Toolbar";
 import TaskList from "./components/TaskList";
 import NotificationSettings, { type NotificationSettings as NotificationSettingsType } from "./components/NotificationSettings";
 import { useTaskNotifications } from "./hooks/useTaskNotifications";
+import useTaskStore from "./store/taskStore";
+import { filterTasks, sortTasks } from "./utils/taskUtils";
 
 const TaskManagerApp: React.FC = () => {
+  const {
+    tasks,
+    filter,
+    sortBy,
+    query,
+    toggleComplete,
+    updateTask,
+    removeTask,
+  } = useTaskStore();
+
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsType>({
     enabled: false,
     notifyBefore: 0,
-    checkInterval: 1
+    checkInterval: 1 
   });
 
   // Initialize notifications with current settings
@@ -23,6 +35,19 @@ const TaskManagerApp: React.FC = () => {
     setNotificationSettings(settings);
   };
 
+  // Derive visible tasks from store state
+  const filtered = filterTasks(tasks, filter);
+  const sorted = sortTasks(filtered, sortBy);
+  const visibleTasks = query
+    ? sorted.filter((t) => {
+        const q = query.toLowerCase();
+        return (
+          t.title.toLowerCase().includes(q) ||
+          (t.notes && t.notes.toLowerCase().includes(q))
+        );
+      })
+    : sorted;
+
   return (
     <div className="min-h-screen bg-gray-200 py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-3 sm:px-4">
@@ -35,7 +60,12 @@ const TaskManagerApp: React.FC = () => {
           <TaskForm />
           <NotificationSettings onSettingsChange={handleNotificationSettingsChange} />
           <Toolbar />
-          <TaskList />
+          <TaskList
+            tasks={visibleTasks}
+            onToggleComplete={toggleComplete}
+            onUpdateTask={updateTask}
+            onDeleteTask={removeTask}
+          />
         </main>
 
         <footer className="mt-6 text-center text-xs sm:text-sm text-gray-500">

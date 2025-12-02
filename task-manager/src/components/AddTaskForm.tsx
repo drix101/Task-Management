@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 interface AddTaskFormProps {
   onAddTask: (
-    title: string, 
+    title: string,
     notes?: string,
     priority?: 'low' | 'medium' | 'high',
     due?: number | null,
@@ -20,13 +20,13 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    const dueTimestamp = dueDate ? new Date(`${dueDate}T23:59:59`).getTime() : null;
+    const dueTimestamp = dueDate ? new Date(dueDate).getTime() : null;
 
     onAddTask(
       title.trim(),
       notes.trim() || undefined,
       priority,
-      dueTimestamp
+      dueTimestamp,
     );
 
     // Reset form
@@ -38,7 +38,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Title */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
           Task Title *
@@ -54,7 +53,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
         />
       </div>
 
-      {/* Notes */}
       <div>
         <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
           Notes
@@ -65,12 +63,11 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Optional notes..."
+          placeholder="Enter task description..."
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Priority */}
         <div>
           <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
             Priority
@@ -87,7 +84,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
           </select>
         </div>
 
-        {/* Due Date */}
         <div>
           <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">
             Due Date
@@ -100,6 +96,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">

@@ -1,185 +1,185 @@
-import React, { useState, useEffect } from "react";
-import type { Task } from "../types/task";
+import React, { useState } from 'react';
+import type { Task } from '../types/task';
+import { getPriorityColor, formatDate } from '../utils/taskUtils';
 
-type Props = {
+interface TaskItemProps {
   task: Task;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-  onUpdate: (id: string, patch: Partial<Task>) => void;
-};
+  onToggleComplete: (id: string) => void;
+  onUpdateTask: (id: string, updates: Partial<Task>) => void;
+  onDeleteTask: (id: string) => void;
+}
 
-const TaskItem: React.FC<Props> = ({ task, onToggle, onDelete, onUpdate }) => {
-  const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
-  const [notes, setNotes] = useState(task.notes || "");
-  const [priority, setPriority] = useState(task.priority);
-  const [dueDate, setDueDate] = useState("");
-  const [dueTime, setDueTime] = useState("");
+const TaskItem: React.FC<TaskItemProps> = ({
+  task,
+  onToggleComplete,
+  onUpdateTask,
+  onDeleteTask,
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(task.title);
+  const [editNotes, setEditNotes] = useState(task.notes || '');
 
-  useEffect(() => {
-    setTitle(task.title);
-    setNotes(task.notes || "");
-    setPriority(task.priority);
-    
-    if (task.due) {
-      const date = new Date(task.due);
-      setDueDate(date.toISOString().split('T')[0]);
-      setDueTime(date.toTimeString().slice(0, 5));
-    } else {
-      setDueDate("");
-      setDueTime("");
+  const handleSaveEdit = () => { 
+    if (editTitle.trim()) {
+      onUpdateTask(task.id, {
+        title: editTitle.trim(),
+        notes: editNotes.trim() || '',
+      });
+      setIsEditing(false);
     }
-  }, [task]);
-
-  const save = () => {
-    let dueTimestamp = null;
-    if (dueDate) {
-      if (dueTime) {
-        dueTimestamp = new Date(`${dueDate}T${dueTime}`).getTime();
-      } else {
-        dueTimestamp = new Date(`${dueDate}T23:59:59`).getTime();
-      }
-    }
-
-    onUpdate(task.id, {
-      title,
-      notes,
-      priority,
-      due: dueTimestamp,
-    });
-    setEditing(false);
   };
 
-  const formatDateTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const dateStr = date.toLocaleDateString();
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return `${dateStr} ${timeStr}`;
+  const handleCancelEdit = () => {
+    setEditTitle(task.title);
+    setEditNotes(task.notes || '');
+    setIsEditing(false);
   };
+
+  const isOverdue = task.due != null && task.due < Date.now() && !task.completed;
 
   return (
-    <div className="p-3 sm:p-4 border-b last:border-b-0 bg-white">
-      <div className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          checked={task.completed}
-          onChange={() => onToggle(task.id)}
-          className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500 flex-shrink-0"
-        />
-        
+    <div className={`p-6 hover:bg-gray-50 transition-colors ${task.completed ? 'opacity-75' : ''}`}>
+      <div className="flex items-start space-x-4">
+        {/* Checkbox */}
+        <button
+          onClick={() => onToggleComplete(task.id)}
+          className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+            task.completed
+              ? 'bg-green-500 border-green-500 text-white'
+              : 'border-gray-300 hover:border-green-500'
+          }`}
+        >
+          {task.completed && (
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </button>
+
+        {/* Task Content */}
         <div className="flex-1 min-w-0">
-          {/* Title and priority row */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-            {editing ? (
-              <input 
-                className="flex-1 p-2 border rounded-md text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                placeholder="Task title"
+          {isEditing ? (
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
               />
-            ) : (
-              <h3 className={`font-medium text-base sm:text-lg break-words ${task.completed ? "line-through text-gray-400" : "text-gray-900"}`}>
-                {task.title}
-              </h3>
-            )}
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span 
-                className="text-xs sm:text-sm px-2 py-1 rounded-full text-white font-medium" 
-                style={{ 
-                  backgroundColor: priority === "high" ? "#ef4444" : priority === "medium" ? "#f59e0b" : "#6b7280" 
-                }}
-              >
-                {priority}
-              </span>
-            </div>
-          </div>
-
-          {/* Due date and time */}
-          {task.due && (
-            <div className="text-xs sm:text-sm text-gray-700 mb-2">
-              📅 {formatDateTime(task.due)}
-            </div>
-          )}
-          
-          {/* Notes section */}
-          <div className="mb-3">
-            {editing ? (
-              <textarea 
-                value={notes} 
-                onChange={(e) => setNotes(e.target.value)} 
-                className="w-full p-2 border rounded-md text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" 
-                placeholder="Add notes..."
+              <textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
                 rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Description..."
               />
-            ) : (
-              task.notes && (
-                <p className="text-sm text-gray-600 break-words">{task.notes}</p>
-              )
-            )}
-          </div>
-
-          {/* Editing form - mobile optimized */}
-          {editing && (
-            <div className="space-y-3 mb-3 p-3 bg-gray-50 rounded-md">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Due Date:</label>
-                  <input 
-                    type="date" 
-                    value={dueDate} 
-                    onChange={(e) => setDueDate(e.target.value)} 
-                    className="w-full p-2 border rounded-md text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Due Time:</label>
-                  <input 
-                    type="time" 
-                    value={dueTime} 
-                    onChange={(e) => setDueTime(e.target.value)} 
-                    className="w-full p-2 border rounded-md text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Priority:</label>
-                <select 
-                  value={priority} 
-                  onChange={(e) => setPriority(e.target.value as Task["priority"])} 
-                  className="w-full p-2 border rounded-md text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleSaveEdit}
+                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
                 >
-                  <option value="low">Low Priority</option>
-                  <option value="medium">Medium Priority</option>
-                  <option value="high">High Priority</option>
-                </select>
+                  Save
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm rounded transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
-          )}
+          ) : (
+            <>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3
+                    className={`text-lg font-medium ${
+                      task.completed ? 'line-through text-gray-500' : 'text-gray-900'
+                    }`}
+                  >
+                    {task.title}
+                  </h3>
+                  {task.notes && (
+                    <p
+                      className={`mt-1 text-sm ${
+                        task.completed ? 'line-through text-gray-400' : 'text-gray-600'
+                      }`}
+                    >
+                      {task.notes}
+                    </p>
+                  )}
+                </div>
 
-          {/* Action buttons - mobile optimized */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <button 
-              onClick={() => (editing ? save() : setEditing(true))} 
-              className="flex-1 sm:flex-none px-3 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-            >
-              {editing ? "💾 Save" : "✏️ Edit"}
-            </button>
-            {editing && (
-              <button 
-                onClick={() => setEditing(false)} 
-                className="flex-1 sm:flex-none px-3 py-2 bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-medium"
-              >
-                ❌ Cancel
-              </button>
-            )}
-            <button 
-              onClick={() => onDelete(task.id)} 
-              className="flex-1 sm:flex-none px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-medium"
-            >
-              🗑️ Delete
-            </button>
-          </div>
+                {/* Actions */}
+                <div className="flex items-center space-x-2 ml-4">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                    title="Edit task"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => onDeleteTask(task.id)}
+                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    title="Delete task"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      /> 
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Task Metadata */}
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                {/* Priority Badge */}
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                    task.priority
+                  )}`}
+                >
+                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
+                </span>
+
+                {/* Due Date */}
+                {task.due != null && (
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      isOverdue
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    Due: {formatDate(task.due)}
+                    {isOverdue && ' (Overdue)'}
+                  </span>
+                )}
+
+                {/* Created Date */}
+                <span className="text-gray-500 text-xs">
+                  Created: {formatDate(task.createdAt)}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
