@@ -92,6 +92,17 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
     }
   };
 
+  // Toggle for pre-notifications (notifyBefore > 0)
+  const notifyBeforeEnabled = settings.notifyBefore > 0;
+  const toggleNotifyBefore = () => {
+    if (!settings.enabled) return;
+    const newSettings = {
+      ...settings,
+      notifyBefore: notifyBeforeEnabled ? 0 : (settings.notifyBefore || 5),
+    };
+    updateSettings(newSettings);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
@@ -116,14 +127,14 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
         </div>
         <button
           onClick={handleToggleNotifications}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-0 ${
-            settings.enabled ? 'bg-blue-600' : 'bg-gray-200'
+          className={`relative inline-flex h-7 w-15 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-4 ${
+            settings.enabled ? 'bg-blue-600' : 'bg-gray-300'
           }`}
           aria-label={settings.enabled ? "Disable notifications" : "Enable notifications"}
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.enabled ? 'translate-x-6' : 'translate-x-1'
+            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
+              settings.enabled ? 'translate-x-6' : 'translate-x-0'
             }`}
           />
         </button>
@@ -138,7 +149,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
             <select
               value={settings.notifyBefore}
               onChange={(e) => updateSettings({ ...settings, notifyBefore: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-base"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-100 text-base"
               disabled={!settings.enabled}
             >
               <option value={0}>At due time</option>
@@ -157,7 +168,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
             <select
               value={settings.checkInterval}
               onChange={(e) => updateSettings({ ...settings, checkInterval: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-base"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100 text-base"
               disabled={!settings.enabled}
             >
               <option value={1}>1 minute</option>
